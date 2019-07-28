@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simulação Gravitação</title>
+	<meta http-equiv=”Content-Type” content=”text/html; charset=iso-8859-1″>
+    <style type="text/css">
+        *
+        {
+            margin: 0;
+            padding: 0;
+        }
+ 
+        html, body
+        {
+            height: 100%;
+            width: 100%;
+			background: #000000;
+        }
+        canvas
+        {
+            display: block;
+        }
+        #target
+        {
+            background: #001022;
+        }
+		.button {
+			display: inline-block;
+			padding: 15px 25px;
+			font-size: 24px;
+			cursor: pointer;
+			text-align: center;
+			text-decoration: none;
+			outline: none;
+			color: #fff;
+			background-color: #4CAF50;
+			border: none;
+			border-radius: 15px;
+			box-shadow: 0 9px #999;		  
+			zoom: 50%;
+		}
+
+		.button:hover {background-color: #3e8e41}
+
+		.button:active {
+			background-color: #3e8e41;
+			box-shadow: 0 5px #666;
+			transform: translateY(4px);
+		}
+		
+    </style>
+</head>
+<body>
+	<div style="position:absolute; z-index:100; text-align: center;color:#ffffff;">
+		<fieldset>
+			<legend style="color:#ffffff; font-style: oblique;">Propriedades Dos Objetos</legend>
+			<table cellspacing="7">
+				<tr>
+					<th align="right">Quantidade:</th>
+					<td align="left" ><input type="text" id="qtdObj" value="500" size="5" maxlength="3" /></th>
+				</tr>
+				<tr>
+					<th align="right">Raio Mínimo:</th>
+					<td align="left" ><input type="text" id="raioMinimo" value="6955000000" size="10" /> Metros</th>
+				</tr>
+				<tr>
+					<th align="right">Variação do Raio:</th>
+					<td align="left" ><input type="text" id="variacaoRaio" value="69550000000" size="10" /> Metros</th>
+				</tr>
+				<tr>
+					<th align="right">Densidade:</th>
+					<td align="left" ><input type="text" id="densidade" value="0.08235" size="5" /> kg/m<sup>3</sup></th>
+				</tr>				
+				<tr>
+					<th align="right">Escala:</th>
+					<td align="left" ><input type="text" id="escala" value="10000000000" size="15" /> Metros/Pixel</th>
+				</tr>				
+				<tr>
+					<td align="right"><button class="button" onclick="aplicar();">Aplicar</button></td>
+					<td align="left" ><button class="button" onclick="location.reload();">Resetar</button></th>
+				</tr>
+				
+			</table>		
+	</div>
+	<canvas id="target" style="border-radius: 0%; z-index:1;"></canvas>
+	
+    <script type="text/javascript">    
+		var canvas = document.getElementById("target");
+		var context = canvas.getContext("2d");
+		var Objetos = new Array();
+		var constanteGravitacional = 0.0000000000667;
+		var timeOutMs = 33;
+		var timeOut;
+		
+		//variaves parametrizadas
+		var escala		  = parseFloat(document.getElementById("escala").value); //metros por pixel
+		var qtdObj 		  = parseInt(document.getElementById("qtdObj").value);
+		var raioMinimo 	  = parseFloat(document.getElementById("raioMinimo").value)   / escala;
+		var variacaoRaio  = parseFloat(document.getElementById("variacaoRaio").value) / escala;
+		var densidade     = parseFloat(document.getElementById("densidade").value) * escala;
+		
+		function aplicar(){
+			escala		  = parseFloat(document.getElementById("escala").value); //metros por pixel
+			qtdObj 		  = parseInt(document.getElementById("qtdObj").value);
+			raioMinimo 	  = parseFloat(document.getElementById("raioMinimo").value)   / escala;
+			variacaoRaio  = parseFloat(document.getElementById("variacaoRaio").value) / escala;
+		    densidade     = parseFloat(document.getElementById("densidade").value) * escala;
+		
+			clearTimeout(timeOut);
+			Objetos = new Array();
+			resizeCanvas();
+			loadContent();
+		}
+		
+		var Objeto = function (x, y, radius, mass, vX, vY, r, g, b) {
+			this.x = x;
+			this.y = y;
+			this.radius = radius;
+			this.mass = mass;
+			this.r = r;
+			this.g = g; 
+			this.b = b;        
+		
+			this.vX = vX;
+			this.vY = vY;
+		}
+	
+		function resizeCanvas() {		
+			canvas.setAttribute("width", window.innerWidth);
+			canvas.setAttribute("height", window.innerHeight);
+	
+			canvasWidth = canvas.width;
+			canvasHeight = canvas.height;
+		};
+		resizeCanvas();
+		
+		function loadContent() {
+			for (var i = 0; i < qtdObj; i++) {
+				var centroCanvasX = canvasWidth / 2;
+				var centroCanvasY = canvasHeight / 2;			
+				var raioX = (canvasWidth / 2) * (Math.random());
+				var raioY = (canvasHeight / 2) * (Math.random());
+				var a = 2 * Math.PI * Math.random();
+				
+				var x = centroCanvasX + (raioX * Math.cos(a));
+				var y = centroCanvasY + (raioY * Math.sin(a));			
+				
+				//var x = Math.random() * canvasWidth;
+				//var y = Math.random() * canvasHeight;
+				
+				var r = 60; //Math.floor((Math.random() * 255) + 1);
+				var g = 60; //Math.floor((Math.random() * 255) + 1);
+				var b = 60; //Math.floor((Math.random() * 255) + 1);
+		
+				var radius = raioMinimo + Math.random() * variacaoRaio;
+				var mass = ((4 * Math.PI * Math.pow(radius, 3)) / 3) * densidade;
+		
+				var vX = (Math.random() * Math.cos(a)) / (escala / 4000000000);
+				var vY = (Math.random() * Math.sin(a)) / (escala / 4000000000);
+				
+				//var vY = 0;
+				
+				Objetos.push(new Objeto(x, y, radius, mass, vX, vY, r, g, b));
+			};
+			animate();
+		}
+		loadContent();
+	
+		function animate() {        
+			update();
+			draw();        
+			timeOut = setTimeout(animate, timeOutMs);
+		}
+	
+		function update() {
+			for (var i = 0; i < Objetos.length; i++) {
+				var Objeto1 = Objetos[i];
+		
+				for (var j = i + 1; j < Objetos.length; j++) {
+					var Objeto2 = Objetos[j];
+					
+					var dX = Objeto2.x - Objeto1.x;
+					var dY = Objeto2.y - Objeto1.y;
+					var distance = Math.sqrt((dX * dX) + (dY * dY));
+					
+					var forcaG = constanteGravitacional * ((Objeto1.mass * Objeto2.mass) / (distance * distance));
+					
+					var aceleracao1 = forcaG / Objeto1.mass;
+					var aceleracao2 = forcaG / Objeto2.mass;
+					
+					a1X = (aceleracao1 * dX) / distance;
+					a1Y = (aceleracao1 * dY) / distance;
+					a2X = ((aceleracao2 * dX) / distance) * -1;
+					a2Y = ((aceleracao2 * dY) / distance) * -1;
+				
+					Objeto1.vX = Objeto1.vX + (a1X * ((timeOutMs) / 1000));
+					Objeto1.vY = Objeto1.vY + (a1Y * ((timeOutMs) / 1000));
+					
+					Objeto2.vX = Objeto2.vX + (a2X * ((timeOutMs) / 1000));
+					Objeto2.vY = Objeto2.vY + (a2Y * ((timeOutMs) / 1000));
+					
+					if (distance <= Objeto1.radius + Objeto2.radius) {
+						if(Objeto1.radius >= Objeto2.radius){
+							var objMaior = Objeto1;
+							var objMenor = Objeto2;
+							var objMenorDelet = j;
+						}else{
+							var objMaior = Objeto2;
+							var objMenor = Objeto1;
+							var objMenorDelet = i;
+						}
+						
+						objMaior.vX = ((objMaior.mass * objMaior.vX) + (objMenor.mass * objMenor.vX)) / (objMaior.mass + objMenor.mass);
+						objMaior.vY = ((objMaior.mass * objMaior.vY) + (objMenor.mass * objMenor.vY)) / (objMaior.mass + objMenor.mass);
+						
+						if(distance < ((objMaior.radius + objMenor.radius))){
+							objMaior.mass   = objMaior.mass   + objMenor.mass;
+							var volume = ((4 * Math.PI * Math.pow(objMaior.radius, 3)) / 3) + ((4 * Math.PI * Math.pow(objMenor.radius, 3)) / 3);
+							objMaior.radius = Math.cbrt((3 * volume) / (4 * Math.PI));
+							objMaior.r += 10;
+							objMaior.g += 5;
+							Objetos.splice(objMenorDelet,1);
+						}else{
+							objMenor.vX = objMaior.vX;
+							objMenor.vY = objMaior.vY;
+						}
+					}
+					
+					
+				}    
+				Objeto1.x += Objeto1.vX;
+				Objeto1.y += Objeto1.vY;
+			}
+		}
+	
+	
+		function draw() {
+			/*context.globalCompositeOperation = "source-over";
+			context.fillStyle = "rgba(0, 0, 0, 0.2)";
+			context.fillRect(0, 0, canvasWidth, canvasHeight);
+			context.globalCompositeOperation = "lighter";*/
+			
+			context.clearRect(0, 0, canvasWidth, canvasHeight);    
+			for (var i = 0; i < Objetos.length; i++) {
+				var Objeto = Objetos[i];
+				
+				context.beginPath();
+				/*var gradient = context.createRadialGradient(Objeto.x, Objeto.y, 0, Objeto.x, Objeto.y, Objeto.radius);
+				gradient.addColorStop(1, "white");
+				gradient.addColorStop(1, "white");
+				gradient.addColorStop(1, "rgba("+Objeto.r+", "+Objeto.g+", "+Objeto.b+", 0.5)");
+				gradient.addColorStop(1, "black");*/
+				
+				context.fillStyle = "rgb(" + Objeto.r + ", " + Objeto.g + ", " + Objeto.b + ")";
+				//context.fillStyle = gradient;
+		
+				context.arc(Objeto.x, Objeto.y, Objeto.radius, 0, Math.PI * 2);
+				context.closePath();
+				context.fill();
+			}
+		}
+    </script>
+</body>
+</html>
